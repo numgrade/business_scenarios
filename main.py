@@ -4,11 +4,6 @@ import pandas as pd
 import streamlit as st
 
 
-FUND = 80_000
-SPENDING_2_PERSONS = 12_000
-SPENDING_3_PERSONS = 20_000
-
-
 def income(
     ndays_subcontract: int = 0,
     ndays_direct: int = 0,
@@ -47,7 +42,7 @@ def model(
         )
     df = pd.DataFrame({"fund": fund}, index=range(months))
     # add a column variation per month
-    df['variation'] = df.diff().fillna(0)
+    df["variation"] = df.diff().fillna(0)
     return df, df.iloc[-1][0]
 
 
@@ -58,7 +53,7 @@ if __name__ == "__main__":
         ndays_direct=1.6,
         ndays_outsourced=0,
         starting_fund=70000,
-        months=7
+        months=7,
     )
     period2, fund = model(
         npersons=2,
@@ -66,7 +61,7 @@ if __name__ == "__main__":
         ndays_direct=4.6,
         ndays_outsourced=0,
         starting_fund=fund,
-        months=7
+        months=7,
     )
     period3, fund = model(
         npersons=3,
@@ -74,9 +69,11 @@ if __name__ == "__main__":
         ndays_direct=8.6,
         ndays_outsourced=0,
         starting_fund=fund,
-        months=7
+        months=7,
     )
-    result = pd.concat([period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis='index')
+    result = pd.concat(
+        [period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis="index"
+    )
     print(period1)
     print()
     print(result)
