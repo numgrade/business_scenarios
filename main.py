@@ -3,6 +3,8 @@
 import pandas as pd
 import streamlit as st
 
+from style import style_negative
+
 
 def income(
     ndays_subcontract: int = 0,
@@ -43,6 +45,8 @@ def model(
     df = pd.DataFrame({"fund": fund}, index=range(months))
     # add a column variation per month
     df["variation"] = df.diff().fillna(0)
+    # naming index
+    df.index.name = 'month'
     return df, df.iloc[-1][0]
 
 
@@ -74,6 +78,11 @@ if __name__ == "__main__":
     result = pd.concat(
         [period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis="index"
     )
-    print(period1)
-    print()
+    result.index.name = period1.index.name
     print(result)
+    # apply red color to negative values - for display in notebook
+    result = result.style.applymap(style_negative, props='color:red;')
+
+    # Streamlit app
+    st.title('Business model')
+    st.write(result)
