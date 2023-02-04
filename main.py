@@ -38,23 +38,45 @@ def model(
         spending = -17500 - npersons * 6000
     else:
         raise ValueError("Number of personns should be 2 or more.")
-    total = []
+    fund = []
     for month in range(months):
-        total.append(
+        fund.append(
             starting_fund
             + month
             * (spending + income(ndays_subcontract, ndays_direct, ndays_outsourced))
         )
-    df = pd.DataFrame({"total": total}, index=range(months))
-    return df
+    df = pd.DataFrame({"fund": fund}, index=range(months))
+    # add a column variation per month
+    df['variation'] = df.diff().fillna(0)
+    return df, df.iloc[-1][0]
 
 
 if __name__ == "__main__":
-    result = model(
+    period1, fund = model(
         npersons=2,
         ndays_subcontract=8.5,
         ndays_direct=1.6,
         ndays_outsourced=0,
         starting_fund=70000,
+        months=7
     )
+    period2, fund = model(
+        npersons=2,
+        ndays_subcontract=8.5,
+        ndays_direct=4.6,
+        ndays_outsourced=0,
+        starting_fund=fund,
+        months=7
+    )
+    period3, fund = model(
+        npersons=3,
+        ndays_subcontract=8.5,
+        ndays_direct=8.6,
+        ndays_outsourced=0,
+        starting_fund=fund,
+        months=7
+    )
+    result = pd.concat([period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis='index')
+    print(period1)
+    print()
     print(result)
