@@ -108,9 +108,9 @@ if __name__ == "__main__":
             x=result.index,
             y=result["revenue"],
             marker=dict(color="SteelBlue"),
-            name="Revenue",
-            # secondary_y=False,
-        )
+            name="Revenue",   
+        ),
+        secondary_y=False,
     )
     fig.add_trace(
         go.Bar(
@@ -118,21 +118,45 @@ if __name__ == "__main__":
             y=result["fund [euros]"],
             marker=dict(color="LightSalmon"),
             name="Fund",
-            # secondary_y=False,
-        )
+        ),
+        secondary_y=False,
     )
     fig.add_trace(
         go.Bar(
             x=result.index,
-            y=result[["ndays subcontract", "ndays direct", "ndays outsourced"]],
-            # marker=dict(color='LightSalmon'),
-            # name='Fund',
-            # secondary_y=True,
-        )
+            y=result["ndays subcontract"],
+            width=0.3,
+            base=0,
+            marker=dict(color='LightBlue', opacity=0.5),
+            name="number of days subcontract",
+        ),
+        secondary_y=True,
+    ),
+    fig.add_trace(
+        go.Bar(
+            x=result.index,
+            y=result["ndays direct"],
+            width=0.3,
+            base=0,
+            marker=dict(color='Blue', opacity=0.5),
+            name="number of days direct",
+        ),
+        secondary_y=True,
+    ),
+    fig.add_trace(
+        go.Bar(
+            x=result.index,
+            y=result["ndays outsourced"],
+            width=0.3,
+            base=0,
+            marker=dict(color='Orange', opacity=0.5),
+            name="number of days outsourced",
+        ),
+        secondary_y=True,
     )
 
     # Set x-axis title
-    fig.update_xaxes(title_text="months")
+    fig.update_xaxes(title_text="<b>months</b>")
 
     # Set y-axes titles
     fig.update_yaxes(title_text="<b>fund</b> [euros]", secondary_y=False)
