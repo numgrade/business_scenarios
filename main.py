@@ -51,6 +51,7 @@ def model(
     df["ndays subcontract"] = ndays_subcontract
     df["ndays direct"] = ndays_direct
     df["ndays outsourced"] = ndays_outsourced
+    df["npersons"] = npersons
     # naming index
     df.index.name = "month"
     return df, df.iloc[-1][0]
@@ -79,7 +80,7 @@ if __name__ == "__main__":
         ndays_direct=4.6,
         ndays_outsourced=0,
         starting_fund=fund,
-        months=7,
+        months=13,
     )
     result = pd.concat(
         [period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis="index"
@@ -95,42 +96,52 @@ if __name__ == "__main__":
     # st.bar_chart(result["fund"])
     # st.line_chart(result["revenue"])
 
-    # plotly
+    # plotly express
     # result.reset_index(inplace=True)
     # fig = px.line(result, x="month", y="revenue", color=px.Constant("Revenue"))
     # fig.add_bar(result, x="month", y="fund [euros]", name="Fund")
     # fig = go.Figure()
     # Create figure with secondary y-axis
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # fig = make_subplots(specs=[[{"secondary_y": True}]])
+    # Create 2 subplots
+    fig = make_subplots(rows=2, cols=1)
 
+    # 1st plot
     fig.add_trace(
         go.Scatter(
             x=result.index,
             y=result["revenue"],
             marker=dict(color="SteelBlue"),
-            name="Revenue",   
+            name="Revenue",
         ),
-        secondary_y=False,
+        row=1,
+        col=1,
     )
     fig.add_trace(
         go.Bar(
             x=result.index,
             y=result["fund [euros]"],
-            marker=dict(color="LightSalmon"),
+            # marker=dict(color="LightSalmon"),
+            marker=dict(color=result["fund [euros]"], coloraxis="coloraxis"),
             name="Fund",
+            showlegend=False,  # already a color bar - so we remove the "normal legend"
         ),
-        secondary_y=False,
+        row=1,
+        col=1,
     )
+
+    # 2nd plot
     fig.add_trace(
         go.Bar(
             x=result.index,
             y=result["ndays subcontract"],
             width=0.3,
             base=0,
-            marker=dict(color='LightBlue', opacity=0.5),
+            marker=dict(color="LightBlue"),
             name="number of days subcontract",
         ),
-        secondary_y=True,
+        row=2,
+        col=1,
     ),
     fig.add_trace(
         go.Bar(
@@ -138,10 +149,11 @@ if __name__ == "__main__":
             y=result["ndays direct"],
             width=0.3,
             base=0,
-            marker=dict(color='Blue', opacity=0.5),
+            marker=dict(color="Blue"),
             name="number of days direct",
         ),
-        secondary_y=True,
+        row=2,
+        col=1,
     ),
     fig.add_trace(
         go.Bar(
@@ -149,17 +161,35 @@ if __name__ == "__main__":
             y=result["ndays outsourced"],
             width=0.3,
             base=0,
-            marker=dict(color='Orange', opacity=0.5),
+            marker=dict(color="Orange"),
             name="number of days outsourced",
         ),
-        secondary_y=True,
+        row=2,
+        col=1,
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=result.index,
+            y=result["npersons"],
+            marker=dict(color="Green"),
+            name="number of employees",
+        ),
+        row=2,
+        col=1,
     )
 
     # Set x-axis title
-    fig.update_xaxes(title_text="<b>months</b>")
+    fig.update_xaxes(title_text="<b>months</b>", row=2, col=1)
 
     # Set y-axes titles
-    fig.update_yaxes(title_text="<b>fund</b> [euros]", secondary_y=False)
-    fig.update_yaxes(title_text="<b># days</b>", secondary_y=True)
+    fig.update_yaxes(title_text="<b>fund / revenue</b> [euros]", row=1, col=1)
+    fig.update_yaxes(title_text="<b># days / # employees</b>", row=2, col=1)
+
+    fig.update_layout(
+        # Color bar
+        coloraxis=dict(colorscale="Bluered_r"),
+        # legend position
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )  # , showlegend=False)
 
     fig.show()
