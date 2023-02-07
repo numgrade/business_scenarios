@@ -1,10 +1,11 @@
 """Business scenarios with streamlit."""
 
+import itertools as it
+
+from dash import Dash, html, dcc, Input, Output
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import streamlit as st
 
 from business_model.style import style_negative
 
@@ -57,52 +58,147 @@ def model(
     return df, df.iloc[-1][0]
 
 
-if __name__ == "__main__":
+# Dashboard with Dash
+app = Dash(__name__)
+
+widgets_children = [
+    [
+        html.Br(),
+        html.Br(),
+        html.Label(f"Phase {i}"),
+        html.Br(),
+        html.Label("Duration [months]"),
+        dcc.Slider(
+            id=f"duration{i}",
+            min=0,
+            max=24,
+            marks={i: str(i) for i in range(1, 25)},
+            value=6,
+        ),
+        html.Br(),
+        html.Label("Number of employees"),
+        dcc.Slider(
+            id=f"nemployees{i}",
+            min=2,
+            max=3,
+            marks={i: str(i) for i in range(2, 4)},
+            value=2,
+        ),
+        html.Br(),
+        html.Label("Number of days - subcontract"),
+        dcc.Slider(
+            id=f"ndays_subcontract{i}",
+            min=0,
+            max=40,
+            marks={i: str(i) for i in range(41)},
+            value=8.5,
+        ),
+        html.Br(),
+        html.Label("Number of days - direct"),
+        dcc.Slider(
+            id=f"ndays_direct{i}",
+            min=0,
+            max=40,
+            marks={i: str(i) for i in range(41)},
+            value=1.6,
+        ),
+        html.Br(),
+        html.Label("Number of days - outsourced"),
+        dcc.Slider(
+            id=f"ndays_outsourced{i}",
+            min=0,
+            max=40,
+            marks={i: str(i) for i in range(41)},
+            value=0,
+        ),
+    ]
+    for i in range(1, 4)
+]
+
+app.layout = html.Div(
+    [
+        html.Div(
+            children=html.H1(children="Business model", style={"textAlign": "left"})
+        ),
+        html.Div(
+            children="Fund and revenue evolutions in function of time, number of working days and number of employees.",
+            style={"textAlign": "left"},
+        ),
+        html.Div(
+            children=list(it.chain(*widgets_children)),
+            style={"padding": 20, "flex": 1},
+        ),
+        dcc.Graph(id="business-graph", style={"height": "90vh"}),
+    ]
+)
+
+
+@app.callback(
+    Output(component_id="business-graph", component_property="figure"),
+    Input(component_id="duration1", component_property="value"),
+    Input(component_id="nemployees1", component_property="value"),
+    Input(component_id="ndays_subcontract1", component_property="value"),
+    Input(component_id="ndays_direct1", component_property="value"),
+    Input(component_id="ndays_outsourced1", component_property="value"),
+    Input(component_id="duration2", component_property="value"),
+    Input(component_id="nemployees2", component_property="value"),
+    Input(component_id="ndays_subcontract2", component_property="value"),
+    Input(component_id="ndays_direct2", component_property="value"),
+    Input(component_id="ndays_outsourced2", component_property="value"),
+    Input(component_id="duration3", component_property="value"),
+    Input(component_id="nemployees3", component_property="value"),
+    Input(component_id="ndays_subcontract3", component_property="value"),
+    Input(component_id="ndays_direct3", component_property="value"),
+    Input(component_id="ndays_outsourced3", component_property="value"),
+)
+def update_graph(
+    duration1,
+    nemployees1,
+    ndays_subcontract1,
+    ndays_direct1,
+    ndays_outsourced1,
+    duration2,
+    nemployees2,
+    ndays_subcontract2,
+    ndays_direct2,
+    ndays_outsourced2,
+    duration3,
+    nemployees3,
+    ndays_subcontract3,
+    ndays_direct3,
+    ndays_outsourced3,
+):
     period1, fund = model(
-        npersons=2,
-        ndays_subcontract=8.5,
-        ndays_direct=1.6,
-        ndays_outsourced=0,
+        npersons=nemployees1,
+        ndays_subcontract=ndays_subcontract1,
+        ndays_direct=ndays_direct1,
+        ndays_outsourced=ndays_outsourced1,
         starting_fund=70000,
-        months=7,
+        months=duration1,
     )
     period2, fund = model(
-        npersons=2,
-        ndays_subcontract=8.5,
-        ndays_direct=4.6,
-        ndays_outsourced=0,
+        npersons=nemployees2,
+        ndays_subcontract=ndays_subcontract2,
+        ndays_direct=ndays_direct2,
+        ndays_outsourced=ndays_outsourced2,
         starting_fund=fund,
-        months=7,
+        months=duration2,
     )
     period3, fund = model(
-        npersons=3,
-        ndays_subcontract=8.5,
-        ndays_direct=4.6,
-        ndays_outsourced=0,
+        npersons=nemployees3,
+        ndays_subcontract=ndays_subcontract3,
+        ndays_direct=ndays_direct3,
+        ndays_outsourced=ndays_outsourced3,
         starting_fund=fund,
-        months=13,
+        months=duration3,
     )
     result = pd.concat(
         [period1, period2.iloc[1:], period3.iloc[1:]], ignore_index=True, axis="index"
     )
-    result.index.name = period1.index.name
-    print(result)
+    # print(result)
     # apply red color to negative values - for display in notebook
     result_redcolor = result.style.applymap(style_negative, props="color:red;")
 
-    # # Streamlit app
-    # st.title('Business model')
-    # st.write(result_redcolor)
-    # st.bar_chart(result["fund"])
-    # st.line_chart(result["revenue"])
-
-    # plotly express
-    # result.reset_index(inplace=True)
-    # fig = px.line(result, x="month", y="revenue", color=px.Constant("Revenue"))
-    # fig.add_bar(result, x="month", y="fund [euros]", name="Fund")
-    # fig = go.Figure()
-    # Create figure with secondary y-axis
-    # fig = make_subplots(specs=[[{"secondary_y": True}]])
     # Create 2 subplots
     fig = make_subplots(rows=2, cols=1)
 
@@ -192,4 +288,9 @@ if __name__ == "__main__":
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )  # , showlegend=False)
 
-    fig.show()
+    return fig
+
+
+if __name__ == "__main__":
+    app.run_server(debug=False)
+    # visit http://127.0.0.1:8050/ in your web browser.
