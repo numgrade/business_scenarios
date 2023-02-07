@@ -1,4 +1,4 @@
-"""Business scenarios with streamlit."""
+"""Business scenarios with Dash."""
 
 import itertools as it
 
@@ -10,8 +10,10 @@ from plotly.subplots import make_subplots
 from business_model.models import model
 from business_model.style import style_negative
 
+
 # Dashboard with Dash
 app = Dash(__name__)
+server = app.server()  # add the line for render.com
 
 widgets_children = [
     [
